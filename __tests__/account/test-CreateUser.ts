@@ -1,9 +1,14 @@
 import Account from '../../src/accountSystem/account';
 import MongoDB from '../../src/database/mongoDB';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 dotenv.config();
 
 const accountFunctions = new Account('AccountTest');
+
+afterAll(() => {
+  mongoose.connection.db.dropCollection('accounttests');
+});
 
 beforeAll(async () => {
   const db = new MongoDB(process.env.MONGODB_URI as string);

@@ -1,10 +1,17 @@
 import MongoDB from '../../../src/database/mongoDB';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 dotenv.config();
 
 beforeAll(() => {
   const db = new MongoDB(process.env.MONGODB_URI as string);
   db.connect();
+});
+afterAll(() => {
+  mongoose.connection.db.dropCollection('savetests');
+  mongoose.connection.db.dropCollection('findtests');
+  mongoose.connection.db.dropCollection('updatetests');
+  mongoose.connection.db.dropCollection('deletetests');
 });
 
 test('model save works', async () => {
