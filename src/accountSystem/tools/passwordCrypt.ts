@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 
-export const passwordCrypt = {
+const passwordCrypt = {
   salt: 10,
 
   crypt: async (password: string) => {
@@ -14,3 +14,5 @@ export const passwordCrypt = {
     return Promise.resolve(isTheSame);
   },
 };
+
+export default passwordCrypt;
