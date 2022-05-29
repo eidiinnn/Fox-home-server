@@ -1,7 +1,8 @@
 import MongoDB from '../database/mongoDB';
 import createAccountToken from './tools/createAccountToken';
+import passwordCrypt from './tools/passwordCrypt';
 
-type CreateDataObject = { email: String; password: String };
+type CreateDataObject = { email: string; password: string };
 
 export default class Account {
   dbModel: any;
@@ -23,6 +24,7 @@ export default class Account {
       premium: false,
       admin: false,
       token: createAccountToken(),
+      password: await passwordCrypt.crypt(data.password),
     });
 
     return new Promise((resolve, reject) => {
@@ -31,5 +33,11 @@ export default class Account {
         else return reject(err);
       });
     });
+  }
+
+  async verify(id: string, password: string): Promise<Boolean> {
+    const accountData = await this.dbModel.findOne({ _id: id });
+    const isTheSame = await passwordCrypt.check(password, accountData.password);
+    return Promise.resolve(isTheSame);
   }
 }
