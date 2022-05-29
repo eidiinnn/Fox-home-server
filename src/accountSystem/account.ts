@@ -1,8 +1,17 @@
+import { ObjectId } from 'mongoose';
 import MongoDB from '../database/mongoDB';
 import createAccountToken from './tools/createAccountToken';
 import passwordCrypt from './tools/passwordCrypt';
 
-type CreateDataObject = { email: string; password: string };
+type CreateData = { email: string; password: string };
+type CreateAccountResolve = {
+  [key: string]: any;
+  _id: ObjectId;
+  email: String;
+  premium: Boolean;
+  admin: Boolean;
+  token: Object;
+};
 
 export default class Account {
   dbModel: any;
@@ -17,25 +26,42 @@ export default class Account {
     });
   }
 
-  async create(data: CreateDataObject): Promise<any | Error> {
-    const toBeSaved = new this.dbModel({
-      ...data,
-      createdAt: new Date(),
-      premium: false,
-      admin: false,
-      token: createAccountToken(),
-      password: await passwordCrypt.crypt(data.password),
-    });
+  async create(data: CreateData): Promise<CreateAccountResolve> {
+    return new Promise(async (resolve, reject) => {
+      const accountToBeSave = new this.dbModel({
+        ...data,
+        createdAt: new Date(),
+        premium: false,
+        admin: false,
+        token: createAccountToken(),
+        password: await passwordCrypt.crypt(data.password),
+      });
 
-    return new Promise((resolve, reject) => {
-      return toBeSaved.save((err: Error, documentCreated: object) => {
-        if (!err) return resolve(documentCreated);
-        else return reject(err);
+      if (await this.verifyHasAnotherEmail(data.email)) {
+        reject(Error('Exist another same email'));
+      }
+
+      accountToBeSave.save((err: Error, documentCreated: any) => {
+        if (err) reject(err);
+        else
+          resolve({
+            _id: documentCreated._id,
+            email: documentCreated.email,
+            premium: documentCreated.premium,
+            admin: documentCreated.admin,
+            token: documentCreated.token,
+          });
       });
     });
   }
 
-  async verify(id: string, password: string): Promise<Boolean> {
+  async verifyHasAnotherEmail(email: string) {
+    const verifyEmail = await this.dbModel.find({ email }).exec();
+    if (verifyEmail.length > 1) return true;
+    else return false;
+  }
+
+  async verifyPassword(id: ObjectId, password: string) {
     const accountData = await this.dbModel.findOne({ _id: id });
     const isTheSame = await passwordCrypt.check(password, accountData.password);
     return Promise.resolve(isTheSame);
