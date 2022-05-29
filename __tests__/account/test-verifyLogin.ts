@@ -18,6 +18,6 @@ test('verify password works', async () => {
   });
 
   return expect(
-    accountFunctions.verifyPassword(accountCreated._id, 'testPassNewUser')
+    await accountFunctions.verifyPassword(accountCreated._id, 'testPassNewUser')
   ).toBe(true);
 });
