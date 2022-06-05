@@ -44,3 +44,14 @@ test('accountFunctions detect if has another account with same email', async () 
       );
     });
 });
+
+test('accountFunctions detect if is not a email type', () => {
+  return accountFunctions
+    .create({ email: 'not email type', password: 'testePassword' })
+    .then(() => {
+      throw 'resolve the promise';
+    })
+    .catch((err) => {
+      return expect(err).toStrictEqual(Error('not email type'));
+    });
+});
