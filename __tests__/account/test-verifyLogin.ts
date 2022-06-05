@@ -6,23 +6,58 @@ dotenv.config();
 
 const accountFunctions = new Account('AccountTest');
 
+afterAll(() => {
+  mongoose.connection.db.dropCollection('accounttests');
+});
+
 beforeAll(async () => {
   const db = new MongoDB(process.env.MONGODB_URI as string);
   db.connect();
   await accountFunctions.dbModel.remove({});
 });
 
-afterAll(() => {
-  mongoose.connection.db.dropCollection('accounttests');
+test('verifyEmailPassword works', async () => {
+  const accountInfo = {
+    email: 'teste@teste.com',
+    password: 'testPassword',
+  };
+  await accountFunctions.create(accountInfo);
+
+  const result = await accountFunctions.verifyLogin(
+    accountInfo.email,
+    accountInfo.password
+  );
+
+  expect(result).toBe(true);
 });
 
-test('verify password works', async () => {
-  const accountCreated = await accountFunctions.create({
-    email: 'eduardo@testVerifyPassword.com',
-    password: 'testPassNewUser',
-  });
+test('verifyEmailPassword detect a wrong password', async () => {
+  const accountInfo = {
+    email: 'testeWrongPassword@teste.com',
+    password: 'testPassword',
+  };
+  await accountFunctions.create(accountInfo);
 
-  return expect(
-    await accountFunctions.verifyPassword(accountCreated._id, 'testPassNewUser')
-  ).toBe(true);
+  return accountFunctions
+    .verifyLogin(accountInfo.email, `notThePassword`)
+    .catch((err) => {
+      return expect(err).toStrictEqual(Error('Incorrect password'));
+    });
+});
+
+test('verifyEmailPassword detect a wrong email', async () => {
+  const accountInfo = {
+    email: 'testeWrongEmail@teste.com',
+    password: 'testPassword',
+  };
+  await accountFunctions.create(accountInfo);
+
+  return accountFunctions
+    .verifyLogin('wrongEmail@teste.com', accountInfo.password)
+    .then(() => {
+      throw 'resolve the promise';
+    })
+    .catch((err) => {
+      return expect(err).toStrictEqual(Error('Email not found'));
+    });
 });
