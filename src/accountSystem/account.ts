@@ -26,6 +26,18 @@ export default class Account {
     });
   }
 
+  async verifyLogin(email: string, password: string) {
+    return new Promise(async (resolve, reject) => {
+      const accountData = await this.dbModel.findOne({ email });
+      if (!accountData) return reject(Error('Email not found'));
+      const isTheSame = await passwordCrypt.check(
+        password,
+        accountData.password
+      );
+      isTheSame ? resolve(true) : reject(Error('Incorrect password'));
+    });
+  }
+
   async create(data: CreateData): Promise<CreateAccountResolve> {
     return new Promise(async (resolve, reject) => {
       const accountToBeSave = new this.dbModel({
@@ -59,11 +71,5 @@ export default class Account {
     const verifyEmail = await this.dbModel.find({ email }).exec();
     if (verifyEmail.length > 1) return true;
     else return false;
-  }
-
-  async verifyPassword(id: ObjectId, password: string) {
-    const accountData = await this.dbModel.findOne({ _id: id });
-    const isTheSame = await passwordCrypt.check(password, accountData.password);
-    return Promise.resolve(isTheSame);
   }
 }
