@@ -4,10 +4,11 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 dotenv.config();
 
-const accountFunctions = new Account('AccountTest');
+const collection = 'accounttests';
+const accountFunctions = new Account('AccountTest', collection);
 
 afterAll(() => {
-  mongoose.connection.db.dropCollection('accounttests');
+  mongoose.connection.db.dropCollection(collection);
 });
 
 beforeAll(async () => {
