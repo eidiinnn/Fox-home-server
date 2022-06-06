@@ -15,7 +15,7 @@ type CreateAccountResolve = {
 
 export default class Account {
   dbModel: any;
-  constructor(modelName: string) {
+  constructor(modelName: string, collectionName?: string) {
     this.dbModel = MongoDB.createModel(modelName, {
       email: String,
       password: String,
@@ -23,7 +23,7 @@ export default class Account {
       premium: Boolean,
       admin: Boolean,
       token: { token: String, createdAt: Date },
-    });
+    }, collectionName);
   }
 
   async verifyLogin(email: string, password: string) {
