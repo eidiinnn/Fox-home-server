@@ -9,11 +9,11 @@ export default class MongoDB {
     this.connectOptions = { serverSelectionTimeoutMS: 5000 };
   }
 
-  static createModel(name: string, schema: object) {
-    const createdSchema = new mongoose.Schema(schema);
+  static createModel(name: string, schema: object, collection?: string) {
+    const createdSchema = new mongoose.Schema(schema, {collection: collection});
     return mongoose.model(name, createdSchema);
   }
-
+ 
   connect() {
     return new Promise((resolve, reject) => {
       mongoose.connect(this.dbUri, this.connectOptions, (err) => {
