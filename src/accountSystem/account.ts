@@ -16,14 +16,18 @@ type CreateAccountResolve = {
 export default class Account {
   dbModel: any;
   constructor(modelName: string, collectionName?: string) {
-    this.dbModel = MongoDB.createModel(modelName, {
-      email: String,
-      password: String,
-      createdAt: Date,
-      premium: Boolean,
-      admin: Boolean,
-      token: { token: String, createdAt: Date },
-    }, collectionName);
+    this.dbModel = MongoDB.createModel(
+      modelName,
+      {
+        email: String,
+        password: String,
+        createdAt: Date,
+        premium: Boolean,
+        admin: Boolean,
+        token: { token: String, createdAt: Date },
+      },
+      collectionName
+    );
   }
 
   async verifyLogin(email: string, password: string) {
@@ -50,10 +54,10 @@ export default class Account {
       });
 
       if (!this.validateEmail(data.email)) {
-        return reject(Error('not email type'));
+        return reject('not email type');
       }
       if (await this.verifyHasAnotherEmail(data.email)) {
-        return reject(Error('Exist another same email'));
+        return reject('Exist another same email');
       }
 
       accountToBeSave.save((err: Error, documentCreated: any) => {
@@ -80,7 +84,7 @@ export default class Account {
 
   async verifyHasAnotherEmail(email: string) {
     const verifyEmail = await this.dbModel.find({ email }).exec();
-    if (verifyEmail.length > 1) return true;
+    if (verifyEmail.length >= 1) return true;
     else return false;
   }
 }
