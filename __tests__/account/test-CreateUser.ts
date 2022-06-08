@@ -3,7 +3,7 @@ import MongoDB from '../../src/database/mongoDB';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 dotenv.config();
-const collectionName = 'accounttests'
+const collectionName = 'accounttests';
 const accountFunctions = new Account('AccountTest', collectionName);
 
 afterAll(() => {
@@ -39,9 +39,7 @@ test('accountFunctions detect if has another account with same email', async () 
       password: 'testPassNewUser',
     })
     .catch((valueReturned) => {
-      return expect(valueReturned).toStrictEqual(
-        Error('Exist another same email')
-      );
+      return expect(valueReturned).toStrictEqual('Exist another same email');
     });
 });
 
@@ -52,6 +50,6 @@ test('accountFunctions detect if is not a email type', () => {
       throw 'resolve the promise';
     })
     .catch((err) => {
-      return expect(err).toStrictEqual(Error('not email type'));
+      return expect(err).toStrictEqual('not email type');
     });
 });
