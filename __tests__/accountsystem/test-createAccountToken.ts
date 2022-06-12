@@ -1,4 +1,4 @@
-import createAccountToken from '../../src/accountSystem/tools/createAccountToken';
+import createAccountToken from '../../src/api/account/accountSystem/tools/createAccountToken';
 
 test('createAccountToken works ', () => {
   const token = createAccountToken();

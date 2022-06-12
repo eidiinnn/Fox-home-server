@@ -1,4 +1,4 @@
-import passwordCrypt from '../../src/accountSystem/tools/passwordCrypt';
+import passwordCrypt from '../../src/api/account/accountSystem/tools/passwordCrypt';
 
 test('PasswordCrypt can crypt a password', async () => {
   const password = 'testPass';
