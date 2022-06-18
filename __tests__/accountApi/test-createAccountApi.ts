@@ -18,12 +18,7 @@ const modelScheme = {
   admin: Boolean,
   token: { token: String, createdAt: Date },
 };
-const accountModel = MongoDB.createModel(
-  'createaccountapis',
-  modelScheme,
-  'createaccountapis'
-);
-const accountFunctions = new Account(accountModel);
+
 
 const collectionName = 'createaccountapis';
 
@@ -36,49 +31,51 @@ beforeAll(async () => {
   db.connect();
 });
 
-const accountApi = new AccountApi(app);
+const accountApi = new AccountApi(app, {modelName: collectionName, collectionName:collectionName});
 accountApi.setApi();
 
-// test('detect empty password', () => {
-//   return request(app)
-//     .post('/createUser')
-//     .send({ email: 'teste@teste.com' })
-//     .expect('Content-Type', /json/)
-//     .expect({ error: 'empty email or password' })
-//     .expect(400);
-// });
+test('detect empty password', () => {
+  return request(app)
+    .post('/createUser')
+    .send({ email: 'teste@teste.com' })
+    .expect('Content-Type', /json/)
+    .expect({ error: [ 'empty email or password' ] })
+    .expect(400);
+});
 
-// test('detect empty email', () => {
-//   return request(app)
-//     .post('/createUser')
-//     .send({ password: 'password' })
-//     .expect('Content-Type', /json/)
-//     .expect({ error: 'empty email or password' })
-//     .expect(400);
-// });
+test('detect empty email', () => {
+  return request(app)
+    .post('/createUser')
+    .send({ password: 'password' })
+    .expect('Content-Type', /json/)
+    .expect({ error: [ 'empty email or password', 'not email type' ] })
+    .expect(400);
+});
 
-// test('detect a non email', () => {
-//   return request(app)
-//     .post('/createUser')
-//     .send({ email: 'not a email', password: 'password' })
-//     .expect('Content-Type', /json/)
-//     .expect({ error: 'not email type' })
-//     .expect(400);
-// });
+test('detect a non email', () => {
+  return request(app)
+    .post('/createUser')
+    .send({ email: 'not a email', password: 'password' })
+    .expect('Content-Type', /json/)
+    .expect({ error: [ 'not email type' ] })
+    .expect(400);
+});
 
-// test('detect a same email on database', async () => {
-//   const emailAndPassword = {
-//     email: 'testeDetectSameEmail@test.com',
-//     password: 'testepass',
-//   };
-//   await accountFunctions.create(emailAndPassword);
-//   return request(app)
-//     .post('/createUser')
-//     .send(emailAndPassword)
-//     .expect('Content-Type', /json/)
-//     .expect({ error: 'Exist another same email' })
-//     .expect(400);
-// });
+test('detect a same email on database', async () => {
+  const emailAndPassword = {
+    email: 'testeDetectSameEmail@test.com',
+    password: 'testepass',
+  };
+  await request(app)
+    .post('/createUser')
+    .send(emailAndPassword)
+  return request(app)
+    .post('/createUser')
+    .send(emailAndPassword)
+    .expect('Content-Type', /json/)
+    .expect({ error: [ 'Exist another same email' ] })
+    .expect(400);
+});
 
 test('create a account', () => {
   return request(app)
