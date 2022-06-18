@@ -1,8 +1,8 @@
-import Account from '../../src/accountSystem/account';
 import MongoDB from '../../src/database/mongoDB';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import AccountApi from '../../src/api/accountApi';
+import AccountApi from '../../src/api/account/accountApi';
+import Account from '../../src/api/account/accountSystem/account';
 const request = require('supertest');
 const express = require('express');
 
@@ -10,8 +10,17 @@ const app = express();
 app.use(express.json());
 dotenv.config();
 
+const modelScheme = {
+  email: String,
+  password: String,
+  createdAt: Date,
+  premium: Boolean,
+  admin: Boolean,
+  token: { token: String, createdAt: Date },
+};
+
+
 const collectionName = 'createaccountapis';
-const accountFunctions = new Account('AccountTest', collectionName);
 
 afterAll(() => {
   mongoose.connection.db.dropCollection(collectionName);
@@ -20,10 +29,9 @@ afterAll(() => {
 beforeAll(async () => {
   const db = new MongoDB(process.env.MONGODB_URI as string);
   db.connect();
-  await accountFunctions.dbModel.remove({});
 });
 
-const accountApi = new AccountApi(app, collectionName);
+const accountApi = new AccountApi(app, {modelName: collectionName, collectionName:collectionName});
 accountApi.setApi();
 
 test('detect empty password', () => {
@@ -31,7 +39,7 @@ test('detect empty password', () => {
     .post('/createUser')
     .send({ email: 'teste@teste.com' })
     .expect('Content-Type', /json/)
-    .expect({ error: 'empty email or password' })
+    .expect({ error: [ 'empty email or password' ] })
     .expect(400);
 });
 
@@ -40,7 +48,7 @@ test('detect empty email', () => {
     .post('/createUser')
     .send({ password: 'password' })
     .expect('Content-Type', /json/)
-    .expect({ error: 'empty email or password' })
+    .expect({ error: [ 'empty email or password', 'not email type' ] })
     .expect(400);
 });
 
@@ -49,7 +57,7 @@ test('detect a non email', () => {
     .post('/createUser')
     .send({ email: 'not a email', password: 'password' })
     .expect('Content-Type', /json/)
-    .expect({ error: 'not email type' })
+    .expect({ error: [ 'not email type' ] })
     .expect(400);
 });
 
@@ -58,12 +66,14 @@ test('detect a same email on database', async () => {
     email: 'testeDetectSameEmail@test.com',
     password: 'testepass',
   };
-  await accountFunctions.create(emailAndPassword);
+  await request(app)
+    .post('/createUser')
+    .send(emailAndPassword)
   return request(app)
     .post('/createUser')
     .send(emailAndPassword)
     .expect('Content-Type', /json/)
-    .expect({ error: 'Exist another same email' })
+    .expect({ error: [ 'Exist another same email' ] })
     .expect(400);
 });
 
